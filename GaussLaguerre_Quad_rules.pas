@@ -100,8 +100,8 @@ procedure GaussLaguerreGen(n: Integer; alpha: decfloat);
 var
   d, e: array of decfloat;
   z: array of decfloat;
-  i: Integer;
-  gammaFactor: decfloat;
+  i, j: Integer;
+  gammaFactor, beta: decfloat;
 begin
   if alpha <= -1 then
   begin
@@ -130,12 +130,28 @@ begin
 
   gammaFactor := fpgamma(alpha + 1);
 
+  { Sort (eigenvalues may not be ordered) }
+  for i := 0 to n-2 do
+    for j := i+1 to n-1 do
+      if d[j] < d[i] then
+      begin
+        // Swap nodes
+        beta := d[i];
+        d[i] := d[j];
+        d[j] := beta;
+        
+        // Swap weights
+        beta := z[i];
+        z[i] := z[j];
+        z[j] := beta;
+      end;
+
   Writeln;
   Writeln('Generalized Gauss–Laguerre');
   Writeln('n = ', n, ' alpha = ', alpha.toString(2));
   Writeln;
-  Writeln('  Node x_i            Weight w_i');
-  Writeln('-------------------------------------------');
+  Writeln('                Node x_i                                      Weight w_i');
+  Writeln('----------------------------------------------------------------------------------------');
 
   for i := 0 to n-1 do
     Writeln(d[i].toString(42), ' ', (gammaFactor * z[i] * z[i]).toString(42));
