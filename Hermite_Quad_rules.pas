@@ -45,7 +45,7 @@
 						q := j;
 					end;
 			
-			if maxval < 1e-14 then
+			if maxval < 1e-114 then
 				Break;
 			
 			tau := (A[q,q] - A[p,p]) / (2 * A[p,q]);
@@ -185,4 +185,5 @@
 	end.
 
 end.
+
 
