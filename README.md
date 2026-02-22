@@ -3,6 +3,8 @@ decimal floating-point unit for FreePascal
 
 
 the unit overloads the arithmetic and logical operators as well as the common mathematical functions including the zeta and gamma functions, all functions support the real and complex type
+
+
 the unit uses the following records
 
 	type decfloat = record
