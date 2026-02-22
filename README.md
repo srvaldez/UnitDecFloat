@@ -25,4 +25,4 @@ the unit uses the following records
 each dword in the mantissa holds 8 digits
 
 
-the math functions are tailored for about 100+ digits of precision, however the basic arithmetic functions and the square root function are only limited by the precision of the mantissa
+the math functions are tailored for about 100+ digits of precision, however the basic arithmetic functions -, +, *, / and the square root function are only limited by the precision of the mantissa
