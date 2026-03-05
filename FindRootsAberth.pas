@@ -7,25 +7,14 @@ program AberthRoots;
 uses
 	SysUtils, Math, unitDecfloat;
 
-function C(r, i: DecFloat): DecFloatC;
-begin
-	Result.re := r;
-	Result.im := i;
-end;
-
-Function AbsC(z : DecFloatC) : DecFloat;
-begin
-    Result := Sqrt(z.re*z.re + z.im*z.im);
-End;
-
 function PolyEval(const coef: array of DecFloat; const z: DecFloatC): DecFloatC;
 var
 	i: Integer;
 	sum: DecFloatC;
 begin
-	sum := C(coef[High(coef)],0);
+	sum := fpComplex(coef[High(coef)],0);
 	for i := High(coef)-1 downto 0 do
-		sum := sum * z + C(coef[i],0);
+		sum := sum * z + fpComplex(coef[i],0);
 	Result := sum;
 end;
 
@@ -35,12 +24,12 @@ var
 	sum: DecFloatC;
 begin
 	if High(coef) <= 0 then
-		Exit(C(0,0));
+		Exit(fpComplex(0,0));
 
-	sum := C(High(coef)*coef[High(coef)],0);
+	sum := fpComplex(High(coef)*coef[High(coef)],0);
 
 	for i := High(coef)-1 downto 1 do
-		sum := sum * z + C(i*coef[i],0);
+		sum := sum * z + fpComplex(i*coef[i],0);
 
 	Result := sum;
 end;
@@ -90,7 +79,7 @@ begin
 			pz  := PolyEval(coef, zk);
 			dpz := PolyDeriv(coef, zk);
 
-			if absC(dpz) < 1e-112 then
+			if cabs(dpz) < 1e-112 then
 			begin
 				dpz.re := 1e-110;
 				dpz.im := 1e-110;
@@ -98,28 +87,28 @@ begin
 
 			correction_inv := dpz / pz;
 
-			sigma := C(0,0);
+			sigma := fpComplex(0,0);
 
 			for j := 0 to n-1 do
 			begin
 				if j = k then Continue;
 
 				diff := zk - roots[j];
-				if absC(diff) < 1e-110 then diff.re := 1e-112;
+				if cabs(diff) < 1e-110 then diff.re := 1e-112;
 
-				sigma := sigma + (C(1,0) / diff);
+				sigma := sigma + (fpComplex(1,0) / diff);
 			end;
 
 			correction_inv := correction_inv - sigma;
 
-			if absC(correction_inv) > 1e-112 then
-				w := C(1,0) / correction_inv
+			if cabs(correction_inv) > 1e-112 then
+				w := fpComplex(1,0) / correction_inv
 			else
-				w := C(0,0);
+				w := fpComplex(0,0);
 
 			roots[k] := zk - w;
 
-			if absC(w) < 1e-110 then
+			if cabs(w) < 1e-110 then
 				Inc(converged);
 		end;
 	end;

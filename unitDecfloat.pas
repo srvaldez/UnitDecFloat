@@ -65,7 +65,8 @@ const p10_constants : array [0..18] of int64 = (
 	procedure gauss_leg_rule(const n:Int32; var x: array of decfloat ; var w: array of decfloat; const dwords_in:Int32 = num_dwords);
 	function getExponent(n:decfloat): int32;
 	function fpipow(const x:decfloat; const e:int64; const dwords_in:Int32 = num_dwords) : decfloat;
-
+	function fpsqr(const num:decfloat; const dwords_in:Int32 = num_dwords) : decfloat;
+	
 	function FloatToStr(x : decfloat):string; overload;
 	procedure Str(x : decfloat; var s:string); overload;
 
@@ -140,7 +141,7 @@ const p10_constants : array [0..18] of int64 = (
 	function Str2c(const s: ansistring) : decfloatc;
 	Function csquare(x : decfloatc) : decfloatc;
 	Function reciprocal(x :decfloatc) : decfloatc;
-	Function cabs(x : decfloatc) : decfloatc;
+	Function cabs(x : decfloatc) : decfloat;
 	Function csqrt(x : decfloatc) : decfloatc;
 	Function cexp(x : decfloatc) : decfloatc;
 	Function clog(x : decfloatc) : decfloatc;
@@ -180,13 +181,13 @@ const p10_constants : array [0..18] of int64 = (
 	Operator ** (const x : decfloatc; const y : decfloatc) : decfloatc;
 	Operator ** (const x : Double; const y : decfloatc) : decfloatc;
 	Operator ** (const x : Integer; const y : decfloatc) : decfloatc;
-	function toDecfloatc(const x : decfloat; const y : decfloat) : decfloatc; overload;
-	function toDecfloatc(const x : double; const y : decfloat) : decfloatc; overload;
-	function toDecfloatc(const x : decfloat; const y : double) : decfloatc; overload;
-	function toDecfloatc(const x : double; const y : double) : decfloatc; overload;
-	function toDecfloatc(const x : Int32; const y : decfloat) : decfloatc; overload;
-	function toDecfloatc(const x : decfloat; const y : Int32) : decfloatc; overload;
-	function toDecfloatc(const x : Int32; const y : Int32) : decfloatc; overload;
+	function fpComplex(const x : decfloat; const y : decfloat) : decfloatc; overload;
+	function fpComplex(const x : double; const y : decfloat) : decfloatc; overload;
+	function fpComplex(const x : decfloat; const y : double) : decfloatc; overload;
+	function fpComplex(const x : double; const y : double) : decfloatc; overload;
+	function fpComplex(const x : Int32; const y : decfloat) : decfloatc; overload;
+	function fpComplex(const x : decfloat; const y : Int32) : decfloatc; overload;
+	function fpComplex(const x : Int32; const y : Int32) : decfloatc; overload;
 	function cArctan2(y, x: decfloatc): decfloatc; overload;
 
 	function fpgamma(x : decfloat) : decfloat;
@@ -1938,6 +1939,10 @@ const p10_constants : array [0..18] of int64 = (
 		r, r2, tmp, n:decfloat;
 		x, y:double;
 	begin
+		r:=si2fp(0);
+		r2:=si2fp(0);
+		tmp:=si2fp(0);
+		n:=si2fp(0);
 		dwords := dwords_in;
 		if (dwords > num_dwords) then dwords := num_dwords;
 
@@ -1957,7 +1962,7 @@ const p10_constants : array [0..18] of int64 = (
 			exit(result)
 		end;
 		result:=si2fp(1, dwords);
-		if (fpcmp(n, result, dwords) = 0) then exit(result);
+		//if (fpcmp(n, result, dwords) = 0) then exit(result);
 
 		//=====================================================================
 		//hack to bypass the limitation of double exponent range
@@ -2473,7 +2478,16 @@ const p10_constants : array [0..18] of int64 = (
 	  c:=fpcmp(x, y);
 	  z:=c<0;
 	end;
-
+(*	
+	operator < (x : decfloat; y : double) z : boolean;
+	var c:Int32;
+		yy:decfloat;
+	begin
+		yy:=dbl2fp(y);
+		c:=fpcmp(x, yy);
+		z:=c<0;
+	end;
+*)
 	operator <= (x : decfloat; y : decfloat) z : boolean;
 	var c:Int32;
 	begin
@@ -3136,10 +3150,9 @@ const p10_constants : array [0..18] of int64 = (
 		Result.im := i;
 	End;
 
-	Function cabs(x : decfloatc) : decfloatc;
+	Function cabs(x : decfloatc) : decfloat;
 	begin
-		Result.re := Sqrt(x.re*x.re+x.im*x.im);
-		Result.im :=0;
+		Result := Sqrt(x.re*x.re+x.im*x.im);
 	End;
 
 	function ArcTan2(const Y, X: decfloat): decfloat; overload;
@@ -3479,44 +3492,44 @@ const p10_constants : array [0..18] of int64 = (
 		result := cexp(Log(si2fp(x))*y);
 	End;
 
-	function toDecfloatc(const x : decfloat; const y : decfloat) : decfloatc; overload;
+	function fpComplex(const x : decfloat; const y : decfloat) : decfloatc; overload;
 	begin
 		Result.re :=x;
 		Result.im :=y;
 	end;
 
-	function toDecfloatc(const x : double; const y : decfloat) : decfloatc; overload;
+	function fpComplex(const x : double; const y : decfloat) : decfloatc; overload;
 	begin
 		Result.re :=x;
 		Result.im :=y;
 	end;
 
-	function toDecfloatc(const x : decfloat; const y : double) : decfloatc; overload;
+	function fpComplex(const x : decfloat; const y : double) : decfloatc; overload;
 	begin
 		Result.re :=x;
 		Result.im :=y;
 	end;
 
-	function toDecfloatc(const x : double; const y : double) : decfloatc; overload;
+	function fpComplex(const x : double; const y : double) : decfloatc; overload;
 	begin
 		Result.re :=x;
 		Result.im :=y;
 	end;
 
 //
-	function toDecfloatc(const x : Int32; const y : decfloat) : decfloatc; overload;
+	function fpComplex(const x : Int32; const y : decfloat) : decfloatc; overload;
 	begin
 		Result.re :=x;
 		Result.im :=y;
 	end;
 
-	function toDecfloatc(const x : decfloat; const y : Int32) : decfloatc; overload;
+	function fpComplex(const x : decfloat; const y : Int32) : decfloatc; overload;
 	begin
 		Result.re :=x;
 		Result.im :=y;
 	end;
 
-	function toDecfloatc(const x : Int32; const y : Int32) : decfloatc; overload;
+	function fpComplex(const x : Int32; const y : Int32) : decfloatc; overload;
 	begin
 		Result.re :=x;
 		Result.im :=y;
