@@ -1569,8 +1569,8 @@ const p10_constants : array [0..18] of int64 = (
 	begin
 		dwords := dwords_in;
 		if (dwords > num_dwords) then dwords := num_dwords;
-		ubn := 2 * dwords + 3+14;
-		ubw := ubn + 4+1;
+		ubn := 2 * dwords + 3+1;
+		ubw := ubn + 4;
 		fac1 := x;
 		fac2 := y;
 
@@ -4205,4 +4205,5 @@ End;
 	Bernoulli_fac[75] := '3.7501595226227196890811761291914005623496889627156492621381709846159226711084583847482690230683105319625039092180705894514217e-120';
 	
 end.
+
 
