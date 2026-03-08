@@ -494,19 +494,14 @@ const p10_constants : array [0..18] of int64 = (
 		result := dbl * tp * sign;
 	end;
 
-	function str2fp(const value_in : ansistring) : decfloat;
+	function str2fp(const value_in: ansistring) : decfloat;
 	var
-		j, s, d, e, ep, ulng  : Int32;
-		ex, es, i, f, fp, fln, cv, cc  : Int32;
-		f1, f2, f3, ts, value : ansistring;
-		c : string;
-		n : decfloat;
+		j, s, d, e, ep, ex, es, i, f, fp, fln: Integer;
+		c: Char;
+		f1, f2, f3, ts, value: string;
+		ulng: LongWord;
+		n: decfloat;
 	begin
-		value:=UpperCase(value_in.trimleft(['0']));
-		if length(value)=0 then value:='0';
-		fln:=length(value);
-		n.sign:=0;
-		n.exponent:=0;
 		j := 1;
 		s := 1;
 		d := 0;
@@ -514,142 +509,164 @@ const p10_constants : array [0..18] of int64 = (
 		ep := 0;
 		ex := 0;
 		es := 1;
-		i := 1;
+		i := 0;
 		f := 0;
 		fp := 0;
 		f1 := '';
 		f2 := '';
 		f3 := '';
-		c:= '';
-		cc:=0;
+		value := UpperCase(value_in);
+		fln := Length(value);
 
-		while (j<=fln) do
+		while j <= fln do
 		begin
-			c:=value[j];
-			if (ep=1) then
+			c := value[j];  // Direct character access in Pascal
+			
+			if ep = 1 then
 			begin
-				if (c=' ') then
+				if c = ' ' then
 				begin
-					inc(j);
+					Inc(j);
 					continue;
 				end;
-				if (c='-') then
+				
+				if c = '-' then
 				begin
-					es:=-es;
-					c:='';
-					inc(j);
+					es := -es;
+					c := #0;  // Equivalent to c=""
+				end;
+				
+				if c = '+' then
+				begin
+					Inc(j);
 					continue;
 				end;
-				if (c='+') then
+				
+				if (c = '0') and (f3 = '') then
 				begin
-					inc(j);
+					Inc(j);
 					continue;
 				end;
-				if ((c='0') and (length(f3)=0)) then
+				
+				if (c > '/') and (c < ':') then  // c is digit between 0 and 9
 				begin
-					inc(j);
-					continue;
-				end;
-				if ((c>'/') and (c<':')) then
-				begin
-					f3:=f3+c;
-					val(c, cv, cc);
-					ex:=10*ex+cv;
-					inc(j);
+					f3 := f3 + c;
+					ex := 10 * ex + (Ord(c) - 48);
+					Inc(j);
 					continue;
 				end;
 			end;
-			if (c=' ') then
+
+			if c = ' ' then
 			begin
-				inc(j);
+				Inc(j);
 				continue;
 			end;
-			if (c='-') then
+			
+			if c = '-' then
 			begin
-				s:=-s;
-				inc(j);
+				s := -s;
+				Inc(j);
 				continue;
 			end;
-			if (c='+') then
+			
+			if c = '+' then
 			begin
-				inc(j);
+				Inc(j);
 				continue;
 			end;
-			if (c='.') then
+			
+			if c = '.' then
 			begin
-				if (d=1) then
+				if d = 1 then
 				begin
-					inc(j);
+					Inc(j);
 					continue;
 				end;
-				d:=1;
+				d := 1;
 			end;
-			if ((c>'/') and (c<':')) then
+			
+			if (c > '/') and (c < ':') then  // c is digit between 0 and 9
 			begin
-				If ((c = '0') And (i = 0)) Then
+				if ((c = '0') and (i = 0)) then
 				begin
-					if (d=0) then
+					if d = 0 then
 					begin
-						inc(j);
+						Inc(j);
 						continue;
 					end;
-					if ((d=1) and (f=0))then
+					
+					if (d = 1) and (f = 0) then
 					begin
-						dec(e);
-						inc(j);
+						e := e - 1;
+						Inc(j);
 						continue;
 					end;
 				end;
-				if (d=0) then
+				
+				if d = 0 then
 				begin
-					f1:=f1+c;
-					inc(i);
-				end;
-				if (d<>0) then
+					f1 := f1 + c;
+					i := i + 1;
+				end
+				else 
 				begin
-					if (c>'0') then fp:=1;
-					f2:=f2+c;
-					inc(f);
+					if (c > '0') then
+						fp := 1;
+					f2 := f2 + c;
+					f := f + 1;
 				end;
 			end;
-			if (c='E') then
-			begin
-				ep:=1;
-			end;
-			inc(j);
+			
+			if (c = 'E') or (c = 'D') then
+				ep := 1;
+			
+			Inc(j);
 		end;
-		if (fp=0) then
+		
+		if fp = 0 then
 		begin
-			f:=0;
-			f2:='';
+			f := 0;
+			f2 := '';
 		end;
-		if (s=1) then s:=0;
-		n.sign:=cc;
-		n.sign:=s;
-		ex := es * ex - 2 + i + e;
 
+		if s = -1 then 
+			s := -1 
+		else 
+			s := 0;
+			
+		n.sign := s;
+		ex := es * ex - 1 + i + e;
 		f1 := f1 + f2;
-		fln:=length(f1);
-		if (fln>num_digits) then
+		
+		if Length(f1) > 1 then
+			f1 := f1[1] + Copy(f1, 2, Length(f1) - 1);
+			
+		fln := Length(f1);
+		
+		if Length(f1) > (NUM_DIGITS + 1 + 8) then
+			f1 := Copy(f1, 1, (NUM_DIGITS + 1 + 8));
+			
+		while Length(f1) < (NUM_DIGITS + 1 + 8) do
+			f1 := f1 + '0';
+			
+		j := 1;
+		for i := 0 to NUM_DWORDS do
 		begin
-			f1:=copy(f1, 1, num_digits);
+			ts := Copy(f1, j, 8);
+			// ValUInt equivalent - using direct conversion
+			Val(ts, ulng);
+			n.mantissa[i] := ulng;
+			if ulng <> 0 then fp := 1;
+			j := j + 8;
 		end;
-		while (length(f1)<num_digits) do
-		begin
-			f1:=f1+'0';
-		end;
-		j:=1;
-		for i:=0 to num_dwords do
-		begin
-			ts:=copy(f1, j, 8);
-			val(ts, ulng, cc);
-			n.mantissa[i]:=ulng;
-			if (ulng<>0) then fp:=1;
-			j:=j+8;
-		end;
-
-		if (fp>0) then n.exponent:=ex+bias+1;
-		result:=n;
+		
+		if fp <> 0 then 
+			n.exponent := (ex + BIAS + 1) 
+		else 
+			n.exponent := 0;
+			
+		Result := n;
 	end;
 
 	function si2fp( const m : int64; const dwords_in : Int32=num_dwords) : decfloat;
